@@ -30,10 +30,10 @@ export function listProfiles() {
 export function createProfile(name: string) {
   const dir = profilePath(name);
   if (existsSync(dir)) throw new Error(`Profile already exists: ${name}`);
-  mkdirSync(resolve(dir, '..'), { recursive: true, mode: 0o700 });
+  mkdirSync(resolve(dir, '..'), { recursive: true, mode: 0o770 });
   // Claim the directory exclusively, so a competing creator cannot have its
   // profile overwritten or removed by this attempt's cleanup.
-  mkdirSync(dir, { mode: 0o700 });
+  mkdirSync(dir, { mode: 0o770 });
   try {
     saveConfig(dir, defaults);
     atomicWrite(join(dir, 'AGENTS.md'), `# ${name}\n\nThis is the ${name} profile.\nAdd your personal instructions here.\n`);

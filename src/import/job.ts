@@ -74,7 +74,7 @@ export function prepareImport(dir: string, old: Memory, incoming: readonly Impor
   const all = mode === 'rebuild' ? chronological([...old.root, ...added]) : [...old.root, ...chronological(added)];
   const entries: Entry[] = all.map((e, i) => ({ ...e, i, size: bytes(`${e.kind}: ${e.text}`) }));
   const kept = mode === 'append' ? old.root.length : 0;
-  for (const sub of ['main', 'tree']) mkdirSync(join(path, sub), { recursive: true, mode: 0o700 });
+  for (const sub of ['main', 'tree']) mkdirSync(join(path, sub), { recursive: true, mode: 0o770 });
   if (kept) atomicWrite(join(path, 'main', '000-import.jsonl'), entries.slice(0, kept).map(e => JSON.stringify(e)).join('\n') + '\n');
   atomicWrite(join(path, STAGED), entries.map(e => JSON.stringify(e)).join('\n') + '\n');
   if (mode === 'append') {

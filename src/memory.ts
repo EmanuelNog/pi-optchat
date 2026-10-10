@@ -38,10 +38,10 @@ export function localDay(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 export function atomicWrite(file: string, text: string | Uint8Array) {
-  mkdirSync(resolve(file, '..'), { recursive: true, mode: 0o700 });
+  mkdirSync(resolve(file, '..'), { recursive: true, mode: 0o770 });
   const temporary = `${file}.${process.pid}.tmp`;
   // One read-write handle: Windows refuses fsync on a read-only one, and it cannot open a directory at all, so there the file flush is the whole guarantee.
-  const fd = openSync(temporary, 'w+', 0o600);
+  const fd = openSync(temporary, 'w+', 0o660);
   try { writeFileSync(fd, text); fsyncSync(fd); } finally { closeSync(fd); }
   renameSync(temporary, file);
   if (process.platform === 'win32') return;
@@ -97,7 +97,7 @@ class Sawtooth {
 const otherWriter = (file: string) => new Error(`Another process wrote ${file}. Close every other Pi on this profile and restart Pi; nothing was written.`);
 /** With `size`, refuses to append unless the file still has that size. A last line left without its newline is ended first. Returns the new size. */
 export function appendJson(file: string, value: unknown, size?: number) {
-  const fd = openSync(file, 'a+', 0o600);
+  const fd = openSync(file, 'a+', 0o660);
   try {
     const length = fstatSync(fd).size, last = Buffer.alloc(1);
     if (size !== undefined && length !== size) throw otherWriter(file);
@@ -165,7 +165,7 @@ export class Memory {
     readonly budget = VIEW, private readonly jobs = 8, private readonly retryMs = 10_000) {
     this.chat = new Sawtooth(budget, budget / 2, part => this.node(part));
     this.compaction = new Sawtooth(budget / 4, budget / 8, part => this.node(part));
-    for (const sub of ['main', 'tree']) mkdirSync(join(directory, sub), { recursive: true, mode: 0o700 });
+    for (const sub of ['main', 'tree']) mkdirSync(join(directory, sub), { recursive: true, mode: 0o770 });
     const main = join(directory, 'main'), log = records(main, warn);
     for (const name of readdirSync(main).filter(n => n.endsWith('.jsonl'))) this.lastSeenBytes.set(join(main, name), statSync(join(main, name)).size);
     const entries = log.every(isEntry) ? log.sort((a, b) => a.i - b.i) : undefined;
